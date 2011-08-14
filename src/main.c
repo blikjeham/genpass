@@ -45,7 +45,7 @@ char *configfile[MAXFILES+1];
 // Can be set to 1 from commandline with -v
 int verbose=0;
 
-void usage() 
+void usage(int exitstatus) 
 {
 	printf("Usage: genpass [OPTION #]...");
 	printf("\nGenerate a random password according to the given options.");
@@ -62,7 +62,7 @@ void usage()
 	printf("Setting a value to -1 disables it.\n");
 	printf("\nExamples:\n  genpass -n 6 -l 2 -u 2 -d 2\tCreates a password with 6 characters, of wich 2 lowercase, 2 uppercase and 2 digits.\n");
 	printf("  genpass -n 10 -l 2 -u 2 -d 2 -e 2\tCreates a password with 10 characters, and at least 2 of every type of character and fills in the rest.\n");
-	exit(0);
+	exit(exitstatus);
 }
 
 void version() 
@@ -78,13 +78,13 @@ void version()
 void help()
 {
 	printf("Genpass %s\nBy Jabik and Sjoerd Job Postmus\n\n",VERSION);
-	usage();
+	usage(0);
 }
 
 void foutje() 
 {
 	fprintf(stderr,"Human error in arguments.\n\n");
-	usage();
+	usage(1);
 }
 
 void printsettings(struct settings *waarden) 
@@ -321,7 +321,7 @@ int main(int argc, char *argv[])
 	if (!validsettings(*waarden)) {
 		fprintf(stderr,"Error: The sum of the tokens is larger than the desired lenght of the password.\nPlease fix this problem.\n");
 		printsettingserr(waarden);
-		return -1;
+		exit(1);
 	} else {
 		if (verbose) {
 			printsettings(waarden);
@@ -330,4 +330,5 @@ int main(int argc, char *argv[])
 		}
 		printf("%s\n", genpass(*waarden));
 	}
+	return 0;
 }
