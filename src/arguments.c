@@ -21,12 +21,46 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include "arguments.h"
 
 const char *argp_program_version = PACKAGE_STRING;
 const char *argp_program_bug_address = PACKAGE_BUGREPORT;
 
 extern struct arguments *argumenst;
+
+void foutje(void) 
+{
+	fprintf(stderr, "Human error in arguments.\n\n");
+	fprintf(stderr, "See '--usage' or '--help' for info.\n");
+	exit(1);
+}
+
+int iscijfer(char *argument) 
+{
+	int i=0;
+	int waar=1;
+	while ((i < strlen(argument)) && (waar)) {
+		if ((isdigit(argument[i])) ||
+		    (argument[i] == '-') ||
+		    (argument[i] == '+')) {
+			waar = 1;
+			i++;
+		} else {
+			waar = 0;
+		}
+	}
+	return(waar);
+}
+
+int readInteger(char *value)
+{
+	if ( iscijfer(value) ) {
+		return atoi(value);
+	}
+	foutje();
+	return(-1);
+}
 
 error_t
 parse_opt(int key, char *arg, struct argp_state *state)
@@ -37,22 +71,22 @@ parse_opt(int key, char *arg, struct argp_state *state)
 	switch (key)
 		{
 		case 'n':
-			arguments->length = atoi(arg);
+			arguments->length = readInteger(arg);
 			break;
 		case 'u':
-			arguments->length = atoi(arg);
+			arguments->length = readInteger(arg);
 			break;
 		case 'l':
-			arguments->lower = atoi(arg);
+			arguments->lower = readInteger(arg);
 			break;
 		case 'd':
-			arguments->digits = atoi(arg);
+			arguments->digits = readInteger(arg);
 			break;
 		case 'e':
-			arguments->extras = atoi(arg);
+			arguments->extras = readInteger(arg);
 			break;
 		case 's':
-			arguments->seed = atoi(arg);
+			arguments->seed = readInteger(arg);
 			break;
 		case 'f':
 			configfile[MAXFILES] = arg;

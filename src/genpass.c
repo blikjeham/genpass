@@ -63,7 +63,6 @@ int getSeedFromDev(int randomchars) {
 	FILE *randomfile = fopen ("/dev/urandom", "r");
 	int randombits = 0;
 	int i;
-	// fgets(randombits, randomchars, randomfile);
 	for (i=0;i<randomchars;i++) {
 		randombits += getc(randomfile);
 	}
@@ -94,8 +93,8 @@ struct arguments *processSettings(struct arguments *parser,
 	l=parser->lower; u=parser->upper;
 	d=parser->digits; e=parser->extras;
 	n=parser->length;
-	if ((l != -2) || (u != -2) || (d != -2) || (e != -2) || (n != -2)) {
-	//	waarden->uppercase=waarden->lowercase=waarden->digits=waarden->extras=2;
+	if ((l != -2) || (u != -2) || (d != -2) ||
+	    (e != -2) || (n != -2)) {
 		if (l != -2) {
 			waarden->lower=l;
 			used = used+l;
@@ -116,13 +115,15 @@ struct arguments *processSettings(struct arguments *parser,
 			waarden->length=n;
 		}
 		if ((n - used) < 0) {
-			// This is an error situation. How should we handle this?
-	//		printf("bla?\n");
-			//foutje();
+			// This is an error situation.
+			// How should we handle this?
+			foutje();
 		}
 	}
-	// Since we don't really do something with the seed, except seed random, we can safely parse it directly.
-	// But we have to check if it's null or not. Else the configfile doesn't work for the seed.
+	// Since we don't really do something with the seed,
+	// except seed random, we can safely parse it directly.
+	// But we have to check if it's null or not.
+	// Else the configfile doesn't work for the seed.
 	if (parser->seed != 0)
 		waarden->seed = parser->seed;
 	return(waarden);
@@ -185,7 +186,8 @@ int fillRandom(char* dst, char* src, int free, int amount)
 	int length = strlen(src);
 	while ( amount > 0 && free > 0 )
 	{
-		putcharinpwd(dst, randomfromlist(src, length), randTo(free--));
+		putcharinpwd(dst, randomfromlist(src, length),
+			     randTo(free--));
 		amount--;
 	}
 	return free;
@@ -193,9 +195,6 @@ int fillRandom(char* dst, char* src, int free, int amount)
 
 char* genpass(struct arguments *setts)
 {
-//	if ( !validsettings(setts) )
-//		return NULL;
-
 	char *password = malloc(setts->length + 1);
 	memset(password, ' ', setts->length);
 	password[setts->length] = 0;

@@ -33,7 +33,6 @@ char *configfile[MAXFILES+1];
 #define CONFDIR "/usr/local"
 #endif /* CONFDIR */
 
-
 struct arguments {
 	int verbose;
 	int length;
@@ -60,6 +59,12 @@ argp_option options[] = {
 	{"verbose", 'v', 0, 0, "Be verbose"},
 	{ 0 }
 };
+
+void foutje(void);
+
+int iscijfer(char *);
+
+int readInteger(char *);
 
 error_t parse_opt(int key, char *arg, struct argp_state *state);
 
