@@ -9,11 +9,11 @@
 .B genpass.conf
 \-\- The genpass configuration file
 .SH SYNOPSIS
-.B /usr/local/etc/genpass.conf
+.B CONFDIR/genpass.conf
 .B $HOME/.genpass
 
 .SH DESCRIPTION
-genpass reads the file /usr/local/etc/genpass.conf (or the file supplied by -f on the commandline). This file contains keyword-argument pairs, one per line, which count as defaults for genpass. Lines starting with an `#' and empty lines are considered as comments and ignored by genpass.
+genpass reads the file CONFDIR/genpass.conf (or the file supplied by -f on the commandline). This file contains keyword-argument pairs, one per line, which count as defaults for genpass. Lines starting with an `#' and empty lines are considered as comments and ignored by genpass.
 
 Keywords are always uppercase. Argumenst are always numbers. Keywords and arguments are seperated by `='.
 Possible keywords are:
