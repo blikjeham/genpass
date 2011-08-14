@@ -114,7 +114,7 @@ struct arguments *processSettings(struct arguments *parser,
 		if (n != -2) {
 			waarden->length=n;
 		}
-		if ((n - used) < 0) {
+		if ((waarden->length - used) < 0) {
 			// This is an error situation.
 			// How should we handle this?
 			foutje();
