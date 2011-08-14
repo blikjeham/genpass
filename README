@@ -1,4 +1,6 @@
 genpass
 
 genpass is a random number generator. It is written in C.
-Run `genpass --help` to see the options.
+It generates a password containing uppercase and lowercase characters, digits, and non-alphanumeric charracters. The amount of different types of characters, and the length of the password are configurable through commandline arguments and a config file (for the defaults).
+
+Because the program returns only the password to stdout (unless `-v' is used to be verbose), it is quite easy to use in scripts setting and/or e-mailing automatically generated passwords.
