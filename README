@@ -1,0 +1,4 @@
+genpass
+
+genpass is a random number generator. It is written in C.
+Run `genpass --help` to see the options.
