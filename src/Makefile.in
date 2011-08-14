@@ -50,7 +50,8 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_genpass_OBJECTS = main.$(OBJEXT) genpass.$(OBJEXT)
+am_genpass_OBJECTS = main.$(OBJEXT) arguments.$(OBJEXT) \
+	genpass.$(OBJEXT)
 genpass_OBJECTS = $(am_genpass_OBJECTS)
 genpass_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -152,8 +153,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AM_CFLAGS = -DCONFDIR='"$(sysconfdir)"'
-genpass_SOURCES = main.c genpass.c genpass.h
+AM_CFLAGS = -DCONFDIR='"$(sysconfdir)"' -Wall -ggdb
+genpass_SOURCES = main.c arguments.c genpass.c genpass.h
 all: all-am
 
 .SUFFIXES:
@@ -235,6 +236,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/arguments.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/genpass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 

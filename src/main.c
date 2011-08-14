@@ -27,6 +27,8 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include "arguments.h"
 #include "genpass.h"
 
 
@@ -39,11 +41,7 @@ char *configfile[MAXFILES+1];
 
 #ifndef CONFDIR
 #define CONFDIR "/usr/local"
-#endif
-
-// Are we verbose or not?
-// Can be set to 1 from commandline with -v
-int verbose=0;
+#endif /* CONFDIR */
 
 void usage(int exitstatus) 
 {
@@ -87,18 +85,27 @@ void foutje()
 	usage(1);
 }
 
-void printsettings(struct settings *waarden) 
+void printsettings(struct arguments *waarden) 
 {
 	if (waarden->seed != 0)
-		printf("genpass -n %d -u %d -l %d -d %d -e %d -s %d\n",waarden->length,waarden->uppercase,waarden->lowercase,waarden->digits,waarden->extras,waarden->seed);
+		printf("genpass -n %d -u %d -l %d -d %d -e %d -s %d\n",
+		       waarden->length,waarden->upper,waarden->lower,
+		       waarden->digits,waarden->extras,waarden->seed);
 	else
-		printf("genpass -n %d -u %d -l %d -d %d -e %d\n",waarden->length,waarden->uppercase,waarden->lowercase,waarden->digits,waarden->extras);
+		printf("genpass -n %d -u %d -l %d -d %d -e %d\n",
+		       waarden->length,waarden->upper,waarden->lower,
+		       waarden->digits,waarden->extras);
 		
 }
 
-void printsettingserr(struct settings *waarden) 
+void printsettingserr(struct arguments *waarden) 
 {
-	fprintf(stderr,"genpass -n %d -u %d -l %d -d %d -e %d\n", waarden->length,waarden->uppercase,waarden->lowercase,waarden->digits,waarden->extras);
+	fprintf(stderr,"genpass -n %d -u %d -l %d -d %d -e %d\n",
+		waarden->length,
+		waarden->upper,
+		waarden->lower,
+		waarden->digits,
+		waarden->extras);
 }
 
 int iscijfer(char *argument) 
@@ -122,30 +129,32 @@ int readInteger(char *value)
 		return atoi(value);
 	}
 	foutje();
+	return(-1);
 }
 
 /* 
  * Let's read some settings from the config file.
  */
-struct settings *readConfFile(char *conffile) 
+int readConfFile(char *conffile, struct arguments *parser) 
 {
 	char *data,*key;
 	FILE *conf;
 	size_t len = 0;
 	ssize_t read;
-	int pos;
-	int l,u,d,e,n=-2;
-	struct settings *parser = malloc(sizeof(struct settings));
+	int n, u, l, d, e;
+	n = u = l = d = e = -2;
+	/* struct arguments *parser = malloc(sizeof(struct arguments)); */
 
 	conf=fopen(conffile,"r");
 	if (! conf) {
 		fprintf(stderr, "Unable to open %s\n", conffile);
-		return(NULL);
+		return(-1);
 	} else {
 		while ((read = getline(&data, &len, conf)) != -1) {
-			/* Strip the conffile from the newlines and the ';' */
+			/* Strip the conffile from the newlines
+			   and the ';' */
 			data = strsep(&data, "\n;");
-			key = strsep(&data," =");	
+			key = strsep(&data," =");
 			if (!strcmp(key,"DIGIT"))
 				d=readInteger(data);
 			if (!strcmp(key,"LOWER"))
@@ -156,20 +165,20 @@ struct settings *readConfFile(char *conffile)
 				e=readInteger(data);
 			if (!strcmp(key,"LENGTH")) 
 				n=readInteger(data);
-			/* Use this seed option in the config file with care */
+			/* Use this seed option in the config
+			   file with care */
 			if (!strcmp(key,"SEED")) {
-				if (verbose) printf("seed is: ");
 				parser->seed=readInteger(data);
-				if (verbose) printf("%d\n",parser->seed);
+				verbose("seed = %d\n",parser->seed);
 			}
 		}
 		fclose(conf);
-		parser->lowercase=l;
-		parser->uppercase=u;
+		parser->lower=l;
+		parser->upper=u;
 		parser->digits=d;
 		parser->extras=e;
 		parser->length=n;
-		return(parser);
+		return(0);
 	}
 }
 
@@ -183,7 +192,6 @@ struct settings *readParameters(int arguc, char **arguv)
 	 * Substract that from the total lenght, and we know how many chars
 	 * we still can use for the rest.
 	 */
-	int used=0;
 	l=u=d=e=n=-2;
 	for (i=1; i<arguc; i++) {
 		if (!isalpha(arguv[i][0])) {
@@ -222,9 +230,9 @@ struct settings *readParameters(int arguc, char **arguv)
 					parser->seed = readInteger(arguv[i+1]);
 					i++;
 					break;
-				case 'v':
-					verbose=1;
-					break;
+				/* case 'v': */
+				/* 	verbose=1; */
+				/* 	break; */
 				case 'V':
 					version();
 					break;
@@ -244,9 +252,19 @@ struct settings *readParameters(int arguc, char **arguv)
 
 int main(int argc, char *argv[]) 
 {
-	struct settings *waarden = malloc(sizeof(struct settings));
-	struct settings *parser1 = malloc(sizeof(struct settings));
+	/* struct settings *waarden = malloc(sizeof(struct settings)); */
+	/* struct settings *parser1 = malloc(sizeof(struct settings)); */
 	struct settings *parser2 = malloc(sizeof(struct settings));
+
+	extern struct arguments *arguments;
+	arguments = malloc(sizeof(struct arguments));
+	memset(arguments, 0, sizeof(struct arguments));
+	extern struct arguments *file_args;
+	file_args = malloc(sizeof(struct arguments));
+	memset(file_args, 0, sizeof(struct arguments));
+	extern struct arguments *final;
+	final = malloc(sizeof(struct arguments));
+	memset(final, 0, sizeof(struct arguments));
 
 	/* for the stat part we need this one. We don't use it, but we need it. */
 	struct stat *bluf= malloc(sizeof(struct stat));
@@ -257,20 +275,30 @@ int main(int argc, char *argv[])
 
 	/* Fill the var configfile */
 	configfile[0]=malloc(strlen(CONFDIR)+strlen(filename));
-	strcat(configfile[0],CONFDIR);
-	strcat(configfile[0],filename);
+	strncat(configfile[0], CONFDIR, strlen(CONFDIR));
+	strncat(configfile[0], filename, strlen(filename));
 	configfile[1]=strcat(getenv("HOME"),"/.genpass");
 	
 	/* Set the default values. */
-	waarden->length = 8;
-	waarden->uppercase = 1;
-	waarden->lowercase = 1;
-	waarden->digits = 1;
-	waarden->extras = 1;
-	waarden->seed = 0;
+	final->length = 8;
+	final->upper = 1;
+	final->lower = 1;
+	final->digits = 1;
+	final->extras = 1;
+	final->seed = 0;
+	/* All values for command line arguments
+	 * need to be '-2' as default, except
+	 * seed. That can remain 0.
+	 */
+	arguments->length = -2;
+	arguments->upper = -2;
+	arguments->lower = -2;
+	arguments->digits = -2;
+	arguments->extras = -2;
 
 	/* Get some values from commandline. */
-	parser1=readParameters(argc,argv);
+	/* parser1=readParameters(argc,argv); */
+	argp_parse(&argp, argc, argv, 0, 0, arguments);
 
 	/* 
 	 * Now we will read the configfiles.
@@ -283,52 +311,59 @@ int main(int argc, char *argv[])
 	 * with the one from commandline as supreme ruler.
 	 */
 	for (i=0;i<=MAXFILES;i++) {
-		if (verbose) printf("Trying configfile: %s ...", configfile[i]);
-		ret = stat(configfile[i],bluf);
-		if (ret != -1) {
-			if (verbose) printf("ok\n");
-			parser2=readConfFile(configfile[i]);
-			if (parser2 == NULL)
-				break;
-			waarden = processSettings(parser2,waarden);
-			if (verbose) printsettings(parser2);
-		} else {
-			if (verbose) printf("no\n");
+		if (configfile[i] != NULL) {
+			verbose("Trying configfile: %s ...",
+				configfile[i]);
+			ret = stat(configfile[i],bluf);
+			if (ret != -1) {
+				verbose("ok\n");
+				/* parser2=readConfFile(configfile[i]); */
+				readConfFile(configfile[i], file_args);
+				if (parser2 == NULL)
+					break;
+				final = processSettings(file_args, final);
+				if (arguments->verbose)
+					printsettings(file_args);
+			} else {
+				verbose("no\n");
+			}
 		}
 	}
 
 	/* override configfile with commandline */
-	waarden = processSettings(parser1,waarden);
+	final = processSettings(arguments, final);
 	
 	/* 
 	 * Check if there is an override in the seed.
 	 * Overriding the seed should only be done to debug or test. 
 	 */
-	if (waarden->seed == 0) {
+	if (final->seed == 0) {
 		/* 
-		 * We don't want to seed with time entirely, but we have to do it for now.
-		 * We are going to seed twice. Once with time, once with the output from
+		 * We don't want to seed with time entirely, but we have
+		 * to do it for now.
+		 * We are going to seed twice. Once with time, once with
+		 * the output from
 		 * getSeedFromDev
 		 */
 		srandom(time(NULL));
 		seed = abs(getSeedFromDev(random() % 1024));
 		srandom(seed);
 	} else {
-		seed = waarden->seed;
+		seed = final->seed;
 		srandom(seed);
 	}
 
-	if (!validsettings(*waarden)) {
+	if (!validsettings(final)) {
 		fprintf(stderr,"Error: The sum of the tokens is larger than the desired lenght of the password.\nPlease fix this problem.\n");
-		printsettingserr(waarden);
+		printsettingserr(final);
 		exit(1);
 	} else {
-		if (verbose) {
-			printsettings(waarden);
+		if (arguments->verbose) {
+			printsettings(final);
 			printf("Random seed is: %d\n", seed);
 			printf("\n");
 		}
-		printf("%s\n", genpass(*waarden));
+		printf("%s\n", genpass(final));
 	}
 	return 0;
 }

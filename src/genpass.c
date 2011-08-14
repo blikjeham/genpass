@@ -17,28 +17,41 @@
  *
  * $Id: genpass.c,v 1.5 2010/09/30 17:29:18 jabik Exp $
  */
+
+#include <stdarg.h>
 #include "genpass.h"
+#include "arguments.h"
 
 char uppercase[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 char lowercase[] = "abcdefghijklmnopqrstuvwxyz";
 char digits[] = "0123456789";
 char extras[] = "~`!@#$%^&*(){}[]',.\"<>/=\\?+|;:-_";
 
-
+void verbose(char *fmt, ...)
+{
+	extern struct arguments *arguments;
+	if (arguments->verbose) {
+		va_list va;
+		va_start(va, fmt);
+		vfprintf(stdout, fmt, va);
+		va_end(va);
+	}
+}
 
 void printWaarden(struct settings *waarden)
 {
 	printf("%d,%d,%d,%d,%d\n",waarden->lowercase, waarden->uppercase, waarden->digits, waarden->extras, waarden->length);
 }
 
-char *stripchar(char string[],char endchar)
+char *stripchar(char *string,char endchar)
 {
-	int i;
+	int i = 0;
 	while(string[i]!='\0') {
 		if(string[i]==endchar)
 			string[i]='\0';
 		i++;
 	}
+	return string;
 }
 
 // This function reads a random amount of chars from
@@ -48,7 +61,7 @@ char *stripchar(char string[],char endchar)
 int getSeedFromDev(int randomchars) {
 	// Open the /dev/urandom file for seeding.
 	FILE *randomfile = fopen ("/dev/urandom", "r");
-	int randombits;
+	int randombits = 0;
 	int i;
 	// fgets(randombits, randomchars, randomfile);
 	for (i=0;i<randomchars;i++) {
@@ -72,20 +85,23 @@ int randTo(int n)
 		return random() % n;
 }
 
-struct settings *processSettings(struct settings *parser, struct settings *waarden)
+struct arguments *processSettings(struct arguments *parser,
+				  struct arguments *waarden)
 {
 	int used=0;
 	int l,u,d,e,n = -2;
 
-	l=parser->lowercase; u=parser->uppercase; d=parser->digits; e=parser->extras; n=parser->length;
+	l=parser->lower; u=parser->upper;
+	d=parser->digits; e=parser->extras;
+	n=parser->length;
 	if ((l != -2) || (u != -2) || (d != -2) || (e != -2) || (n != -2)) {
 	//	waarden->uppercase=waarden->lowercase=waarden->digits=waarden->extras=2;
 		if (l != -2) {
-			waarden->lowercase=l;
+			waarden->lower=l;
 			used = used+l;
 		}
 		if (u != -2) {
-			waarden->uppercase=u;
+			waarden->upper=u;
 			used = used+u;
 		}
 		if (d != -2) {
@@ -114,31 +130,31 @@ struct settings *processSettings(struct settings *parser, struct settings *waard
 }
 
 // Check if there is enough room to store the items.
-int validsettings(struct settings setts)
+int validsettings(struct arguments *setts)
 {
 	int needed = 0;
 	int positive = 0;
-	if ( setts.uppercase >= 0 )
+	if ( setts->upper >= 0 )
 	{
-		needed += setts.uppercase;
+		needed += setts->upper;
 		positive++;
 	}
-	if ( setts.lowercase >= 0 )
+	if ( setts->lower >= 0 )
 	{
-		needed += setts.lowercase;
+		needed += setts->lower;
 		positive++;
 	}
-	if ( setts.digits >= 0 )
+	if ( setts->digits >= 0 )
 	{
-		needed += setts.digits;
+		needed += setts->digits;
 		positive++;
 	}
-	if ( setts.extras >= 0 )
+	if ( setts->extras >= 0 )
 	{
-		needed += setts.extras;
+		needed += setts->extras;
 		positive++;
 	}
-	return ( needed <= setts.length && positive > 0 );
+	return ( needed <= setts->length && positive > 0 );
 }
 
 char randomfromlist(char *list, int length)
@@ -175,34 +191,34 @@ int fillRandom(char* dst, char* src, int free, int amount)
 	return free;
 }
 
-char* genpass(struct settings setts)
+char* genpass(struct arguments *setts)
 {
 //	if ( !validsettings(setts) )
 //		return NULL;
 
-	char *password = malloc(setts.length + 1);
-	memset(password, ' ', setts.length);
-	password[setts.length] = 0;
+	char *password = malloc(setts->length + 1);
+	memset(password, ' ', setts->length);
+	password[setts->length] = 0;
 
-	int free = setts.length;
+	int free = setts->length;
 
-	free = fillRandom(password, uppercase, free, setts.uppercase);
-	free = fillRandom(password, lowercase, free, setts.lowercase);
-	free = fillRandom(password, digits,    free, setts.digits   );
-	free = fillRandom(password, extras,    free, setts.extras   );
+	free = fillRandom(password, uppercase, free, setts->upper);
+	free = fillRandom(password, lowercase, free, setts->lower);
+	free = fillRandom(password, digits,    free, setts->digits);
+	free = fillRandom(password, extras,    free, setts->extras);
 
 	// We now know that all values (setts.(...)) are either -1 or 0.
 	char *randomList = malloc(
-		(setts.uppercase+1)*strlen(uppercase) +
-		(setts.lowercase+1)*strlen(lowercase) +
-		(setts.digits   +1)*strlen(digits   ) +
-		(setts.extras   +1)*strlen(extras   ) + 1);
+		(setts->upper+1)*strlen(uppercase) +
+		(setts->lower+1)*strlen(lowercase) +
+		(setts->digits+1)*strlen(digits   ) +
+		(setts->extras+1)*strlen(extras   ) + 1);
 	randomList[0] = '\0';
 
-	if ( setts.uppercase >= 0 ) strcat(randomList, uppercase);
-	if ( setts.lowercase >= 0 ) strcat(randomList, lowercase);
-	if ( setts.digits    >= 0 ) strcat(randomList, digits   );
-	if ( setts.extras    >= 0 ) strcat(randomList, extras   );
+	if ( setts->upper >= 0 ) strcat(randomList, uppercase);
+	if ( setts->lower >= 0 ) strcat(randomList, lowercase);
+	if ( setts->digits >= 0 ) strcat(randomList, digits   );
+	if ( setts->extras >= 0 ) strcat(randomList, extras   );
 
 	free = fillRandom(password, randomList, free, free);
 

@@ -17,6 +17,10 @@
  *
  * $Id: genpass.h,v 1.3 2010/09/30 17:29:18 jabik Exp $
  */
+
+#ifndef GENPASS_H
+#define GENPASS_H 1
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -31,3 +35,15 @@ struct settings
 	int extras;
 	int seed;
 };
+
+void verbose(char *, ...);
+
+struct arguments *processSettings(struct arguments *, struct arguments *);
+
+int getSeedFromDev(int );
+
+int validsettings(struct arguments *);
+
+char* genpass(struct arguments *);
+
+#endif /* GENPASS_H */
