@@ -26,6 +26,10 @@
 #include "config.h"
 #include <argp.h>
 
+/* Define the maximum number of config files.
+ * Not counting the one given from commandline.
+ * The one from commandline is at position MAXFILES in the array.
+ */
 #define MAXFILES 2
 char *configfile[MAXFILES+1];
 

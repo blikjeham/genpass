@@ -31,19 +31,6 @@
 #include "arguments.h"
 #include "genpass.h"
 
-
-/* Define the maximum number of config files.
- * Not counting the one given from commandline.
- * The one from commandline is at position MAXFILES in the array.
- */
-#define MAXFILES 2
-char *configfile[MAXFILES+1];
-
-#ifndef CONFDIR
-#define CONFDIR "/usr/local"
-#endif /* CONFDIR */
-
-
 void printsettings(struct arguments *waarden) 
 {
 	if (waarden->seed != 0)
