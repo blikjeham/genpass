@@ -1,0 +1,71 @@
+\" genpass.1
+\" This is the manpage for the genpass project.
+\" $Id: genpass.1,v 1.8 2011/04/17 11:32:45 jabik Exp $
+.TH GENPASS 1
+.SH NAME
+GenPass \- a random password generator
+.SH SYNOPSIS
+.B genpass
+[
+.I OPTION
+]
+.SH INTRODUCTION
+.B genpass
+is a simple random password generator. It will create a password 
+consisting of lowercase-, uppercase- characters, numbers and 
+non-alphanumeric characters. These passwords created by
+.B genpass
+are completely random and occur in no dictionairy. Therefore a 
+dictionairy attack an your password will not succeed. There is however 
+no remedy for brute force attacks.
+.SH USAGE
+You can run
+.B genpass
+with no arguments, and it will ceate a standard format password. This 
+default format password is 8 characters long and has two uppercase- and 
+two lowercasecharacters. Furthermore it has two numbers and two extra 
+characters.
+
+If you want to customize the type of password you can supply commandline 
+arguments to
+.B genpass
+.IP "-d #"
+at least #
+.B numbers
+.IP "-e #"
+at least #
+.B non-alphanumeric
+characters
+.IP "-h, --help"
+Print a help message
+.IP "-l #"
+atleast #
+.B lowercase
+characters
+.IP "-n #"
+generates a password of # characters
+.IP "-u #"
+atleast #
+.B uppercase
+characters
+.IP "-f configfile"
+Specify a different config file. Default is "/usr/local/etc/genpass.conf"
+.IP "-s #"
+Use this number as the seed to random. Use this option with care, because
+the same seed, results in the same password. It circumvents the whole
+idea of a 'random' password generator. But it can be nice for testing
+perposes.
+.IP "-v"
+Verbose, thus showing all the options you are using.
+.IP "-V"
+Show the version.
+
+Setting a value to -1 disables that feature.
+.SH BUGS
+Report bugs to devel@sjoerdjob.com or devel@snth.eu
+.SH SEE ALSO
+.B genpass.conf(5)
+.SH AUTHORS
+The algorithm is designed and implemented by Sjoerd Job Postmus <devel@sjoerdjob.com>.
+The userinterface is written by Jabik Postmus <devel@snth.eu>
+

@@ -1,0 +1,44 @@
+\" genpass.conf.5
+\" 
+\" This is the manpage belonging to the genpass.conf file
+\"
+\" $Id: genpass.conf.5,v 1.7 2011/04/17 11:32:45 jabik Exp $
+
+.TH genpass.conf 5
+.SH NAME
+.B genpass.conf
+\-\- The genpass configuration file
+.SH SYNOPSIS
+.B /usr/local/etc/genpass.conf
+.B $HOME/.genpass
+
+.SH DESCRIPTION
+genpass reads the file /usr/local/etc/genpass.conf (or the file supplied by -f on the commandline). This file contains keyword-argument pairs, one per line, which count as defaults for genpass. Lines starting with an `#' and empty lines are considered as comments and ignored by genpass.
+
+Keywords are always uppercase. Argumenst are always numbers. Keywords and arguments are seperated by `='.
+Possible keywords are:
+.IP "LENGTH"
+This defines the length of the password. If not given, it will default to 8.
+.IP "UPPER"
+Defines the minimum number of uppercase characters. If not given, it will default to 1.
+.IP "LOWER"
+Defines the minimum number of lowercase characters. Defaults to 1 if not supplied.
+.IP "DIGITS"
+Gives the minimum number of numerical characters. Defaults to 1 if not supplied.
+.IP "EXTRA"
+This defines the minimum number of extra characters. If not given, it will default to 1.
+.IP "SEED"
+This defines the seed for all random functions in genpass.
+Use this option with care, because the same seed, results in the same password.
+This circumvents the entire idea of having a 'random' password generator, but it can
+be good for testing purposes.
+
+Setting a value to -1 disables that feature.
+
+.SH SEE ALSO
+.B genpass(1)
+
+.SH AUTHORS
+The algorithm is designed and implemented by Sjoerd Job Postmus <devel@sjoerdjob.com>. 
+The userinterface is written by Jabik Postmus <devel@snth.eu>.
+
