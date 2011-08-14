@@ -5,4 +5,4 @@
 
 AM_CFLAGS = -DCONFDIR='"$(sysconfdir)"' -Wall -ggdb
 bin_PROGRAMS = genpass
-genpass_SOURCES = main.c arguments.c genpass.c genpass.h
+genpass_SOURCES = main.c arguments.c genpass.c
