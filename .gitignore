@@ -1,0 +1,10 @@
+autom4te.cache
+*.o
+stamp-h1
+*Makefile
+*~
+*.status
+*.log
+*.deps
+config.h
+src/genpass
