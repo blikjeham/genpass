@@ -154,7 +154,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CFLAGS = -DCONFDIR='"$(sysconfdir)"' -Wall -ggdb
-genpass_SOURCES = main.c arguments.c genpass.c genpass.h
+genpass_SOURCES = main.c arguments.c genpass.c
 all: all-am
 
 .SUFFIXES:
