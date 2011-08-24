@@ -4,3 +4,6 @@ genpass is a random number generator. It is written in C.
 It generates a password containing uppercase and lowercase characters, digits, and non-alphanumeric charracters. The amount of different types of characters, and the length of the password are configurable through commandline arguments and a config file (for the defaults).
 
 Because the program returns only the password to stdout (unless `-v' is used to be verbose), it is quite easy to use in scripts setting and/or e-mailing automatically generated passwords.
+
+Although most of the code found here is shell code (as github.com is so nice to mention as primary language), the main code is in fact C. The shell script you see here is all created by autotools. I'm still planning on using the output from autotools in the code (FreeBSD uses random functions that differ from those used on GNU/Linux), but haven't really found the time to do.
+So github is a bit off; the language is C.
