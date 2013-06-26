@@ -39,6 +39,7 @@ char *configfile[MAXFILES+1];
 
 struct arguments {
 	int verbose;
+	int count;
 	int length;
 	int upper;
 	int lower;
@@ -52,6 +53,7 @@ struct arguments *file_args;
 
 static struct
 argp_option options[] = {
+	{"count", 'c', "#", 0, "Number of passwords to generate"},
 	{"length", 'n', "#", 0, "Length of the password"},
 	{"upper", 'u', "#", 0, "Number of uppercase characters"},
 	{"lower", 'l', "#", 0, "Number of lowercase characters"},

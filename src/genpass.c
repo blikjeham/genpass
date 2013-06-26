@@ -89,12 +89,16 @@ struct arguments *processSettings(struct arguments *parser,
 {
 	int used=0;
 	int l,u,d,e,n = -2;
+	int c = 1;
 
 	l=parser->lower; u=parser->upper;
 	d=parser->digits; e=parser->extras;
-	n=parser->length;
+	n=parser->length; c=parser->count;
 	if ((l != -2) || (u != -2) || (d != -2) ||
-	    (e != -2) || (n != -2)) {
+	    (e != -2) || (n != -2) || (c != 1)) {
+		if (c != 1) {
+			waarden->count=c;
+		}
 		if (l != -2) {
 			waarden->lower=l;
 			used = used+l;

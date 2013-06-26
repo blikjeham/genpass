@@ -34,11 +34,13 @@
 void printsettings(struct arguments *waarden) 
 {
 	if (waarden->seed != 0)
-		printf("genpass -n %d -u %d -l %d -d %d -e %d -s %d\n",
+		printf("genpass -c %d -n %d -u %d -l %d -d %d -e %d -s %d\n",
+		       waarden->count,
 		       waarden->length,waarden->upper,waarden->lower,
 		       waarden->digits,waarden->extras,waarden->seed);
 	else
-		printf("genpass -n %d -u %d -l %d -d %d -e %d\n",
+		printf("genpass -c %d, -n %d -u %d -l %d -d %d -e %d\n",
+		       waarden->count,
 		       waarden->length,waarden->upper,waarden->lower,
 		       waarden->digits,waarden->extras);
 		
@@ -46,7 +48,8 @@ void printsettings(struct arguments *waarden)
 
 void printsettingserr(struct arguments *waarden) 
 {
-	fprintf(stderr,"genpass -n %d -u %d -l %d -d %d -e %d\n",
+	fprintf(stderr,"genpass -c %d -n %d -u %d -l %d -d %d -e %d\n",
+		waarden->count,
 		waarden->length,
 		waarden->upper,
 		waarden->lower,
@@ -63,8 +66,9 @@ int readConfFile(char *conffile, struct arguments *parser)
 	FILE *conf;
 	size_t len = 0;
 	ssize_t read;
-	int n, u, l, d, e;
+	int c, n, u, l, d, e;
 	n = u = l = d = e = -2;
+	c = 1;
 
 	conf=fopen(conffile,"r");
 	if (! conf) {
@@ -76,6 +80,8 @@ int readConfFile(char *conffile, struct arguments *parser)
 			   and the ';' */
 			data = strsep(&data, "\n;");
 			key = strsep(&data," =");
+			if (!strcmp(key, "COUNT"))
+				c=readInteger(data);
 			if (!strcmp(key,"DIGIT"))
 				d=readInteger(data);
 			if (!strcmp(key,"LOWER"))
@@ -94,6 +100,7 @@ int readConfFile(char *conffile, struct arguments *parser)
 			}
 		}
 		fclose(conf);
+		parser->count=c;
 		parser->lower=l;
 		parser->upper=u;
 		parser->digits=d;
@@ -132,6 +139,7 @@ int main(int argc, char *argv[])
 	configfile[1]=strcat(getenv("HOME"),"/.genpass");
 	
 	/* Set the default values. */
+	final->count = 1;
 	final->length = 8;
 	final->upper = 1;
 	final->lower = 1;
@@ -142,6 +150,7 @@ int main(int argc, char *argv[])
 	 * need to be '-2' as default, except
 	 * seed. That can remain 0.
 	 */
+	arguments->count = 1;
 	arguments->length = -2;
 	arguments->upper = -2;
 	arguments->lower = -2;
@@ -211,14 +220,18 @@ int main(int argc, char *argv[])
 		fprintf(stderr,"Error: The sum of the tokens is larger than the desired lenght of the password.\nPlease fix this problem.\n");
 		printsettingserr(final);
 		exit(1);
-	} else {
-		if (arguments->verbose) {
-			printsettings(final);
-			printf("Random seed is: %d\n", seed);
-			printf("\n");
-		}
+	}
+	
+	if (arguments->verbose) {
+		printsettings(final);
+		printf("Random seed is: %d\n", seed);
+		printf("\n");
+	}
+
+	for (i=0; i<final->count; i++) {
 		printf("%s\n", genpass(final));
 	}
+	
 	free(final);
 	free(arguments);
 	return 0;

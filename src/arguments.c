@@ -70,6 +70,9 @@ parse_opt(int key, char *arg, struct argp_state *state)
 
 	switch (key)
 		{
+		case 'c':
+			arguments->count = readInteger(arg);
+			break;
 		case 'n':
 			arguments->length = readInteger(arg);
 			break;

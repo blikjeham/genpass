@@ -28,6 +28,7 @@
 
 struct settings
 {
+	int count;
 	int length;
 	int uppercase;
 	int lowercase;
