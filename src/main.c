@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
 	char *filename = "/genpass.conf";
 
 	/* Fill the var configfile */
-	configfile[0]=malloc(strlen(CONFDIR)+strlen(filename));
+	configfile[0]=malloc(strlen(CONFDIR)+strlen(filename)+1);
 	strncat(configfile[0], CONFDIR, strlen(CONFDIR));
 	strncat(configfile[0], filename, strlen(filename));
 	configfile[1]=strcat(getenv("HOME"),"/.genpass");
