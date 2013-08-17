@@ -31,84 +31,6 @@
 #include "arguments.h"
 #include "genpass.h"
 
-void printsettings(struct arguments *waarden) 
-{
-	if (waarden->seed != 0)
-		printf("genpass -c %d -n %d -u %d -l %d -d %d -e %d -s %d\n",
-		       waarden->count,
-		       waarden->length,waarden->upper,waarden->lower,
-		       waarden->digits,waarden->extras,waarden->seed);
-	else
-		printf("genpass -c %d, -n %d -u %d -l %d -d %d -e %d\n",
-		       waarden->count,
-		       waarden->length,waarden->upper,waarden->lower,
-		       waarden->digits,waarden->extras);
-		
-}
-
-void printsettingserr(struct arguments *waarden) 
-{
-	fprintf(stderr,"genpass -c %d -n %d -u %d -l %d -d %d -e %d\n",
-		waarden->count,
-		waarden->length,
-		waarden->upper,
-		waarden->lower,
-		waarden->digits,
-		waarden->extras);
-}
-
-/* 
- * Let's read some settings from the config file.
- */
-int readConfFile(char *conffile, struct arguments *parser) 
-{
-	char *data,*key;
-	FILE *conf;
-	size_t len = 0;
-	ssize_t read;
-	int c, n, u, l, d, e;
-	n = u = l = d = e = -2;
-	c = 1;
-
-	conf=fopen(conffile,"r");
-	if (! conf) {
-		fprintf(stderr, "Unable to open %s\n", conffile);
-		return(-1);
-	} else {
-		while ((read = getline(&data, &len, conf)) != -1) {
-			/* Strip the conffile from the newlines
-			   and the ';' */
-			data = strsep(&data, "\n;");
-			key = strsep(&data," =");
-			if (!strcmp(key, "COUNT"))
-				c=readInteger(data);
-			if (!strcmp(key,"DIGIT"))
-				d=readInteger(data);
-			if (!strcmp(key,"LOWER"))
-				l=readInteger(data);
-			if (!strcmp(key,"UPPER"))
-				u=readInteger(data);
-			if (!strcmp(key,"EXTRA"))
-				e=readInteger(data);
-			if (!strcmp(key,"LENGTH")) 
-				n=readInteger(data);
-			/* Use this seed option in the config
-			   file with care */
-			if (!strcmp(key,"SEED")) {
-				parser->seed=readInteger(data);
-				verbose("seed = %d\n",parser->seed);
-			}
-		}
-		fclose(conf);
-		parser->count=c;
-		parser->lower=l;
-		parser->upper=u;
-		parser->digits=d;
-		parser->extras=e;
-		parser->length=n;
-		return(0);
-	}
-}
 
 int main(int argc, char *argv[]) 
 {
@@ -139,26 +61,11 @@ int main(int argc, char *argv[])
 	configfile[1]=strcat(getenv("HOME"),"/.genpass");
 	
 	/* Set the default values. */
-	final->count = 1;
-	final->length = 8;
-	final->upper = 1;
-	final->lower = 1;
-	final->digits = 1;
-	final->extras = 1;
-	final->seed = 0;
-	/* All values for command line arguments
-	 * need to be '-2' as default, except
-	 * seed. That can remain 0.
-	 */
-	arguments->count = 1;
-	arguments->length = -2;
-	arguments->upper = -2;
-	arguments->lower = -2;
-	arguments->digits = -2;
-	arguments->extras = -2;
+	set_default(final);
+	set_empty(arguments);
 
-	/* Get some values from commandline. */
-	argp_parse(&argp, argc, argv, 0, 0, arguments);
+	if (parse_arg(argc, argv))
+	    exit(1);
 
 	/* 
 	 * Now we will read the configfiles.
@@ -190,7 +97,8 @@ int main(int argc, char *argv[])
 	}
 	free(bluf);
 
-	/* override configfile with commandline
+	/*
+	 * override configfile with commandline
 	 * and free the file_args
 	 */
 	final = processSettings(arguments, final);

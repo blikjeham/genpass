@@ -24,7 +24,8 @@
 #define ARGUMENTS_H 1
 
 #include "config.h"
-#include <argp.h>
+
+#define MAXLINE 255
 
 /* Define the maximum number of config files.
  * Not counting the one given from commandline.
@@ -51,31 +52,15 @@ struct arguments {
 struct arguments *final;
 struct arguments *file_args;
 
-static struct
-argp_option options[] = {
-	{"count", 'c', "#", 0, "Number of passwords to generate"},
-	{"length", 'n', "#", 0, "Length of the password"},
-	{"upper", 'u', "#", 0, "Number of uppercase characters"},
-	{"lower", 'l', "#", 0, "Number of lowercase characters"},
-	{"digits", 'd', "#", 0, "Number of digits"},
-	{"extra", 'e', "#", 0,
-	 "Number of extra (non-alphanumeric) characters"},
-	{"seed", 's', "#", 0, "Use this seed"},
-	{"configfile", 'f', "FILE", 0, "Use configuration file FILE"},
-	{"verbose", 'v', 0, 0, "Be verbose"},
-	{ 0 }
-};
-
 void foutje(void);
+void printsettings(struct arguments *);
+void printsettingserr(struct arguments *);
 
-int iscijfer(char *);
+int readConfFile(char *, struct arguments *);
 
-int readInteger(char *);
+int parse_arg(int , char **);
 
-error_t parse_opt(int key, char *arg, struct argp_state *state);
-
-static struct
-argp argp = {options, parse_opt, 0,
-	     "genpass -- a random password generator"};
+void set_default(struct arguments *);
+void set_empty(struct arguments *);
 
 #endif /* ARGUMENTS_H */

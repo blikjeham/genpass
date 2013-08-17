@@ -21,86 +21,169 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include "arguments.h"
+#include "genpass.h"
 
-const char *argp_program_version = PACKAGE_STRING;
-const char *argp_program_bug_address = PACKAGE_BUGREPORT;
-
-extern struct arguments *argumenst;
-
-void foutje(void) 
-{
-	fprintf(stderr, "Human error in arguments.\n\n");
-	fprintf(stderr, "See '--usage' or '--help' for info.\n");
-	exit(1);
+void foutje(void) {
+    fprintf(stderr, "Arguments are inconsistent.\n");
 }
 
-int iscijfer(char *argument) 
+void printsettings(struct arguments *a) 
 {
-	int i=0;
-	int waar=1;
-	while ((i < strlen(argument)) && (waar)) {
-		if ((isdigit(argument[i])) ||
-		    (argument[i] == '-') ||
-		    (argument[i] == '+')) {
-			waar = 1;
-			i++;
-		} else {
-			waar = 0;
-		}
-	}
-	return(waar);
+    printf("genpass -c %d -n %d -u %d -l %d -d %d -e %d",
+	   a->count,
+	   a->length, a->upper, a->lower,
+	   a->digits, a->extras);
+    if (a->seed != 0)
+	printf(" -s %d", a->seed);
+    printf("\n");
 }
 
-int readInteger(char *value)
+void printsettingserr(struct arguments *a)
 {
-	if ( iscijfer(value) ) {
-		return atoi(value);
+	fprintf(stderr,"genpass -c %d -n %d -u %d -l %d -d %d -e %d\n",
+		a->count,
+		a->length,
+		a->upper,
+		a->lower,
+		a->digits,
+		a->extras);
+}
+
+static void print_help(void)
+{
+    printf("Genpass - A random password generator.\n\n");
+    printf("\t-c #\t\tThe number of passwords to generate\n"
+	   "\t-n #\t\tThe length of the password\n"
+	   "\t-u #\t\tThe minimum of uppercase characters\n"
+	   "\t-l #\t\tThe minimum of lowercase characters\n"
+	   "\t-d #\t\tThe minimum of digits\n"
+	   "\t-e #\t\tThe minimum of extra characters\n"
+	   "\t-s #\t\tThe seed for random functions (only for debugging)\n"
+	   "\t-f FILE\t\tSupply a config file\n"
+	   "\t-h\t\tDisplay this message\n");
+    exit(0);
+}
+
+int parse_arg(int argc, char **argv)
+{
+    extern struct arguments *arguments;
+    char c;
+    while ((c = getopt(argc, argv, "vhc:n:u:l:d:e:s:")) != -1) {
+	switch(c) {
+	case 'v':
+	    arguments->verbose++;
+	    break;
+	case 'c':
+	    arguments->count = atoi(optarg);
+	    break;
+	case 'n':
+	    arguments->length = atoi(optarg);
+	    break;
+	case 'u':
+	    arguments->length = atoi(optarg);
+	    break;
+	case 'l':
+	    arguments->lower = atoi(optarg);
+	    break;
+	case 'd':
+	    arguments->digits = atoi(optarg);
+	    break;
+	case 'e':
+	    arguments->extras = atoi(optarg);
+	    break;
+	case 's':
+	    arguments->seed = atoi(optarg);
+	    break;
+	case 'f':
+	    configfile[MAXFILES] = optarg;
+	    break;
+	case 'h':
+	    print_help();
+	    return 0;
+	default:
+	    return 1;
 	}
-	foutje();
+    }
+    return 0;
+}
+
+/* 
+ * Let's read some settings from the config file.
+ */
+int readConfFile(char *conffile, struct arguments *parser)
+{
+    char *data;
+    char *key;
+    FILE *conf;
+    int c, n, u, l, d, e;
+    n = u = l = d = e = -2;
+    c = 1;
+
+    data = malloc(MAXLINE);
+    
+    conf=fopen(conffile,"r");
+    if (! conf) {
+	fprintf(stderr, "Unable to open %s\n", conffile);
 	return(-1);
+    } else {
+	while ((data = fgets(data, MAXLINE, conf)) != NULL) {
+	    if (data == NULL)
+		break;
+	    /* Strip the conffile from the newlines
+	       and the ';' */
+	    data = strsep(&data, "\n;");
+	    key = strsep(&data,"=");
+	    if (!strcmp(key, "COUNT"))
+		c=atoi(data);
+	    if (!strcmp(key,"DIGIT"))
+		d=atoi(data);
+	    if (!strcmp(key,"LOWER"))
+		l=atoi(data);
+	    if (!strcmp(key,"UPPER"))
+		u=atoi(data);
+	    if (!strcmp(key,"EXTRA"))
+		e=atoi(data);
+	    if (!strcmp(key,"LENGTH")) 
+		n=atoi(data);
+	    /* Use this seed option in the config
+	       file with care */
+	    if (!strcmp(key,"SEED")) {
+		parser->seed=atoi(data);
+		verbose("seed = %d\n",parser->seed);
+	    }
+	}
+	fclose(conf);
+	parser->count=c;
+	parser->lower=l;
+	parser->upper=u;
+	parser->digits=d;
+	parser->extras=e;
+	parser->length=n;
+	return(0);
+    }
 }
 
-error_t
-parse_opt(int key, char *arg, struct argp_state *state)
+void set_default(struct arguments *arg)
 {
-	extern struct arguments *arguments;
-	arguments = state->input;
+    arg->count = 1;
+    arg->length = 8;
+    arg->upper = 1;
+    arg->lower = 1;
+    arg->digits = 1;
+    arg->extras = 1;
+    arg->seed = 0;
+}
 
-	switch (key)
-		{
-		case 'c':
-			arguments->count = readInteger(arg);
-			break;
-		case 'n':
-			arguments->length = readInteger(arg);
-			break;
-		case 'u':
-			arguments->length = readInteger(arg);
-			break;
-		case 'l':
-			arguments->lower = readInteger(arg);
-			break;
-		case 'd':
-			arguments->digits = readInteger(arg);
-			break;
-		case 'e':
-			arguments->extras = readInteger(arg);
-			break;
-		case 's':
-			arguments->seed = readInteger(arg);
-			break;
-		case 'f':
-			configfile[MAXFILES] = arg;
-			break;
-		case 'v':
-			arguments->verbose++;
-			break;
-		case ARGP_KEY_END:
-			break;
-		default:
-			return ARGP_ERR_UNKNOWN;
-		}
-	return 0;
+void set_empty(struct arguments *arg)
+{
+    arg->count = 1;
+    arg->length = -2;
+    arg->upper = -2;
+    arg->lower = -2;
+    arg->digits = -2;
+    arg->extras = -2;
 }
