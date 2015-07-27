@@ -19,7 +19,7 @@
  * $Id$
  * $URL$
  */
-
+#define _WITH_GETLINE
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -72,7 +72,7 @@ int parse_arg(int argc, char **argv)
 {
     extern struct arguments *arguments;
     char c;
-    while ((c = getopt(argc, argv, "vhc:n:u:l:d:e:s:")) != -1) {
+    while ((c = getopt(argc, argv, "vhc:n:u:l:d:e:s:f:")) != -1) {
 	switch(c) {
 	case 'v':
 	    arguments->verbose++;
@@ -99,7 +99,8 @@ int parse_arg(int argc, char **argv)
 	    arguments->seed = atoi(optarg);
 	    break;
 	case 'f':
-	    configfile[MAXFILES] = optarg;
+	    configfile[MAXFILES] = malloc(strlen(optarg));
+	    strncpy(configfile[MAXFILES], optarg, strlen(optarg));
 	    break;
 	case 'h':
 	    print_help();
@@ -119,18 +120,19 @@ int readConfFile(char *conffile, struct arguments *parser)
     char *data;
     char *key;
     FILE *conf;
+    size_t size;
     int c, n, u, l, d, e;
     n = u = l = d = e = -2;
     c = 1;
 
-    data = malloc(MAXLINE);
-    
-    conf=fopen(conffile,"r");
-    if (! conf) {
-	fprintf(stderr, "Unable to open %s\n", conffile);
+    data = malloc(MAXLINE + 1);
+    size = MAXLINE - 1;
+    conf = fopen(conffile, "r");
+    if (!conf) {
+        fprintf(stderr, "Unable to open %s\n", conffile);
 	return(-1);
     } else {
-	while ((data = fgets(data, MAXLINE, conf)) != NULL) {
+	while ((getline(&data, &size, conf)) != -1) {
 	    if (data == NULL)
 		break;
 	    /* Strip the conffile from the newlines
@@ -147,7 +149,7 @@ int readConfFile(char *conffile, struct arguments *parser)
 		u=atoi(data);
 	    if (!strcmp(key,"EXTRA"))
 		e=atoi(data);
-	    if (!strcmp(key,"LENGTH")) 
+	    if (!strcmp(key,"LENGTH"))
 		n=atoi(data);
 	    /* Use this seed option in the config
 	       file with care */
